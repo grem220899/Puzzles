@@ -1,0 +1,193 @@
+<html>
+
+<head>
+    <title>TODO supply a title</title>
+    <meta charset="UTF-8">
+    <link href="style.css" rel="stylesheet" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="jquery-3.2.1.js"></script>
+</head>
+
+<body>
+    <div id="plansza">
+
+    </div>
+    <div id="staty">
+
+    </div>
+    <div id="staty2"></div>
+    <button id="start">Start</button>
+    <button id="generuj">generuj</button>
+    <button id="poziomo">poziomo</button>
+    <button id="pionowo">pinowo</button>
+    <script>
+        Array.prototype.unique = function() {
+            var arr = [];
+            for (var i = 0; i < this.length; i++) {
+                if (!arr.includes(this[i])) {
+                    arr.push(this[i]);
+                }
+            }
+            return arr;
+        }
+        var plansza = document.getElementById("plansza");
+        var kolory = ['rgb(255, 0, 0)', 'rgb(0, 128, 0)', 'rgb(0, 0, 255)', 'rgb(128, 0, 128)', 'rgb(255, 255, 0)', 'rgb(255, 165, 0)'];
+
+        function klocek(id, top, left, row, col) {
+            var k = Math.floor(Math.random() * kolory.length);
+            this.id = id;
+            this.top = top;
+            this.left = left;
+            this.color = kolory[k];
+            this.row = row;
+            this.col = col;
+
+            this.print = function() {
+                return "<div class='klocek' id='" + this.id + "' style='background-color:" + this.color + ";top:" + this.top + "px;left:" + this.left + "px;' col='" + this.col + "' row='" + this.row + "' >" + this.id + "</div>";
+            }
+        }
+
+
+
+        function nowaGra() {
+            var licznik = 100;
+            var content = [];
+            var top_ = 0;
+            var left_ = 0;
+            var klik = 1;
+            var klik1 = null;
+            var klik2 = null;
+            var wynik = false;
+            var blokada = false;
+            var tablica = [];
+            var col = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            var row = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+            var row_ = 0;
+            var col_ = 0;
+            var wynik = 0;
+            for (i = 0; i < 100; i++) {
+                var tmp = new klocek(i, top_, left_, row[row_], col[col_]);
+                content[i] = tmp.print();
+                left_ += 40;
+                col_++;
+                if (i % 10 == 9) {
+                    left_ = 0;
+                    top_ += 40;
+                    row_++;
+                    col_ = 0;
+                }
+            }
+            plansza.innerHTML = content;
+            search();
+            search();
+            $(".klocek").click(klikanie2);
+
+            function klikanie2() {
+                if (blokada == false) {
+                    if (klik == 1) {
+                        klik1 = parseInt($(this).attr("id"));
+                        klik = 2;
+                    } else if (klik == 2) {
+                        //                        if (parseInt($(this).attr("id")) == (klik1 - 1) || parseInt($(this).attr("id")) == (klik + 1) || parseInt($(this).attr("id")) == (klik1 + 10) || parseInt($(this).attr("id")) == (klik1 - 10)) {
+                        klik2 = parseInt($(this).attr("id"));
+                        klik = 3;
+                        blokada = true;
+                        //                        } else {
+                        //                            klik1 == null;
+                        // klik2 == null;
+                        // klik == 1;
+                        // }
+                    }
+                }
+                if (blokada == true) {
+                    if (klik == 3) {
+                        var color_tmp = $("#" + klik1).css("background-color");
+                        $("#" + klik1).css("background-color", $("#" + klik2).css("background-color"))
+                        $("#" + klik2).css("background-color", color_tmp);
+                        setTimeout(function() {
+                            if (search() == 1) {
+                                $("#" + klik2).css("background-color", $("#" + klik1).css("background-color"))
+                                $("#" + klik1).css("background-color", color_tmp);
+                            }
+
+                            klik = 1;
+                            blokada = false;
+                        }, 1500);
+
+                    }
+                }
+            }
+
+            function search() {
+                var arr = [];
+                for (i = 0; i < 100; i++) {
+                    if (i % 10 < 8) {
+                        if ($("#" + i).css("background-color") == $("#" + (i + 1)).css("background-color") &&
+                            $("#" + i).css("background-color") == $("#" + (i + 2)).css("background-color")) {
+                            arr.push(i);
+                            arr.push(i + 1);
+                            arr.push(i + 2);
+                        }
+                    }
+                }
+                for (i = 0; i < 100; i++) {
+                    if (i < 80) {
+                        if ($("#" + i).css("background-color") == $("#" + (i + 10)).css("background-color") &&
+                            $("#" + i).css("background-color") == $("#" + (i + 20)).css("background-color")) {
+                            arr.push(i);
+                            arr.push(i + 10);
+                            arr.push(i + 20);
+                        }
+                    }
+                }
+                var tmp = arr;
+                arr = tmp.unique();
+                for (i = 0; i < arr.length; i++)
+                    usun(arr[i]);
+                var score = 10 * parseInt(arr.length);
+                stat(score);
+                if (arr.length == 0)
+                    return 1;
+            }
+
+
+
+            function stat(score) {
+                wynik += score;
+                //                console.log(wynik);
+                //                console.log(score);
+                $("#staty2").html("Twój wynik:" + wynik);
+            };
+
+
+            function generuj(id, top, left) {
+                var tmp = new klocek(id, parseInt(top), parseInt(left));
+                $("#plansza").append(tmp.print());
+                //                $("#" + id).hide();
+                $("#" + id).click(klikanie2);
+
+
+
+            }
+
+
+            function usun(id) {
+                //                licznik++;
+                var tmp = [];
+                tmp[1] = $("#" + id).css("top");
+                tmp[2] = $("#" + id).css("left");
+                tmp[3] = $("#" + id).attr("row");
+                tmp[4] = $("#" + id).attr("col");
+                $("#" + id).remove();
+
+                generuj(id, tmp[1], tmp[2], tmp[3], tmp[4]);
+            }
+        }
+        $("#start").click(function() {
+            nowaGra()
+        });
+
+    </script>
+</body>
+
+</html>
